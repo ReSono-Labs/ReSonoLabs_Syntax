@@ -391,6 +391,7 @@ static void app_on_terminal_event(provider_transport_terminal_event_type_t type,
             if (!provider_runtime_results_consume(s_app.pending_replay_task_id)) {
                 ESP_LOGW(TAG, "Replay consume failed task=%s", s_app.pending_replay_task_id);
             }
+            ui_shell_notification_remove(s_app.pending_replay_task_id);
             s_app.pending_replay_task_id[0] = '\0';
         }
         if (app_state_get() == APP_STATE_TALKING) {
