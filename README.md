@@ -1,5 +1,9 @@
 # ReSono Labs Syntax Firmware
 
+![ReSono Labs Syntax Logo](IMG_3089.PNG)
+
+![ReSono Labs Syntax Device](IMG_3095.JPG)
+
 ## Required Hardware
 
 This firmware build is specifically for the **Waveshare ESP32-S3 1.85C Round LCD with Speaker**:
