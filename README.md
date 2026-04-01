@@ -1,5 +1,23 @@
 # ReSono Labs Syntax Firmware
 
+## Required Hardware
+
+This firmware build is specifically for the **Waveshare ESP32-S3 1.85C Round LCD with Speaker**:
+
+- Product page: `https://www.waveshare.com/esp32-s3-touch-lcd-1.85c.htm`
+- You can buy it directly from Waveshare, and it is also available from other online sellers.
+
+Important revision note:
+
+- This project currently targets **hardware V1** of the `ESP32-S3-Touch-LCD-1.85C`.
+- Waveshare documents a **V1 / V2 hardware split**. On V1, the audio path uses a `PCM5101APWR` decoder. On V2, Waveshare changed the audio path to `ES8311` + `ES7210`, changed the microphone design, and changed several board-level pin assignments.
+- Waveshare's current version notes also show pin differences including `GPIO2` (`MIC_WS` on V1, `I2S_MCLK` on V2), `GPIO10` / `GPIO11`, and `GPIO15`.
+- This firmware's current board support and audio platform are wired for the **V1 board-level implementation**, so **try to get V1 if possible**.
+- We have **not tested this build on V2** yet. Based on the documented differences, V2 should likely require only **small board support package and audio driver changes** to run, but that port has not been completed here.
+- If enough developers receive V2 hardware, I will consider purchasing a V2 board and porting the firmware. If you receive V2 first, you can also make those board-level changes yourself.
+
+If you need to adapt this firmware to another hardware revision or another target board, start with [APPLICATION_LAYER_PORTING_GUIDE.md](/home/chris/Documents/ambitious/esp32/APPLICATION_LAYER_PORTING_GUIDE.md).
+
 ReSono Labs Syntax is the ESP32-S3 firmware for the ReSono Labs Syntax voice device. It handles first-boot Wi-Fi provisioning, the local web control panel, touchscreen/device UI, audio capture and playback, OTA upload, and the live OpenClaw device bridge used for real-time voice sessions and deferred task results.
 
 This repo was also structured so the application/runtime layer can be reused on other hardware targets. The current device is one implementation of the stack, not the only possible one.

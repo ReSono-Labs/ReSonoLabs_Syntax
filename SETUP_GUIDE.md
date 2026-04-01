@@ -1,5 +1,23 @@
 # ReSono Labs Syntax Setup Guide
 
+## Required Hardware
+
+This build is specifically for the **Waveshare ESP32-S3 1.85C Round LCD with Speaker**:
+
+- Product page: `https://www.waveshare.com/esp32-s3-touch-lcd-1.85c.htm`
+- You can buy it directly from Waveshare, and it is also commonly available through online sellers.
+
+Before you buy one, read this carefully:
+
+- This project currently targets **V1** of the `ESP32-S3-Touch-LCD-1.85C`.
+- Waveshare documents a **V1 / V2 split**. V1 uses a `PCM5101APWR` audio decoder. V2 switches to `ES8311` + `ES7210`, changes the microphone path, and changes several board-level pin assignments.
+- Documented Waveshare pin differences include `GPIO2`, `GPIO10`, `GPIO11`, and `GPIO15`, which matters for the current audio and peripheral wiring.
+- We have **not tested this firmware on V2**. It should likely only need **small board support package and audio driver changes** to run on V2, but that port is not part of this repo today.
+- Recommendation: **try to get V1 hardware**.
+- If enough developers receive V2 boards, I will consider buying one and porting the firmware. If you receive V2 first, you can also make the board-level changes yourself.
+
+If you need to adapt the runtime to another device or hardware revision, see [APPLICATION_LAYER_PORTING_GUIDE.md](/home/chris/Documents/ambitious/esp32/APPLICATION_LAYER_PORTING_GUIDE.md).
+
 Follow these steps to connect your ReSono Labs Syntax device to Wi-Fi and pair it with your OpenClaw server.
 
 Important: install the ReSono Labs OpenClaw Bridge plugin before setting up the device.
@@ -57,7 +75,7 @@ Your ReSono Labs Syntax device should now transition to "READY" and be able to r
 ---
 
 ### Tips
--   **Firmware**: The build is optimized for **V1 hardware** (PCM5101).
+-   **Firmware**: The build targets **V1 hardware** (`PCM5101APWR` audio path).
 -   **Security**: The Dev PIN clears occasionally for security; just check the Info Drawer again if you are locked out of the web portal.
 -   **Logs**: Use `idf.py monitor` while connected via USB if you need to debug pairing issues.
 -   **Plugin First**: If OpenClaw pairing does not complete, verify the ReSono Labs OpenClaw Bridge plugin is installed and active before debugging the device.
