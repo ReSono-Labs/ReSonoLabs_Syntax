@@ -108,7 +108,7 @@ static esp_err_t handle_gateway_token(httpd_req_t *req)
     char token[PROVIDER_WEB_TOKEN_MAX];
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (web_request_recv_body(req, body, sizeof(body)) < 0 ||
         !web_request_extract_field(body, "gateway_token", token_raw, sizeof(token_raw))) {
@@ -133,7 +133,7 @@ static esp_err_t handle_endpoint(httpd_req_t *req)
     long port = 0;
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (web_request_recv_body(req, body, sizeof(body)) < 0) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Read error");
@@ -180,7 +180,7 @@ static esp_err_t handle_status(httpd_req_t *req)
     char body[768];
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!provider_runtime_get_snapshot(&snapshot)) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "status unavailable");
@@ -225,7 +225,7 @@ static esp_err_t handle_status(httpd_req_t *req)
 static esp_err_t handle_reconnect(httpd_req_t *req)
 {
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!provider_runtime_reconnect()) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "reconnect failed");
@@ -239,7 +239,7 @@ static esp_err_t handle_reconnect(httpd_req_t *req)
 static esp_err_t handle_forget_device_token(httpd_req_t *req)
 {
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!provider_runtime_forget_device_token()) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "forget failed");
@@ -253,7 +253,7 @@ static esp_err_t handle_forget_device_token(httpd_req_t *req)
 static esp_err_t handle_full_reset(httpd_req_t *req)
 {
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!provider_runtime_full_reset()) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "reset failed");

@@ -388,7 +388,7 @@ static esp_err_t handle_status(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
 
     memset(ssid, 0, sizeof(ssid));
@@ -477,7 +477,7 @@ static esp_err_t handle_boards(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
 
     active_board = app_get_active_board();
@@ -535,7 +535,7 @@ static esp_err_t handle_ui_layout(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!ui_shell_get_layout(&layout)) {
         free(buf);
@@ -589,7 +589,7 @@ static esp_err_t handle_ui_shell_status(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!ui_shell_get_status(&status)) {
         free(buf);
@@ -631,7 +631,7 @@ static esp_err_t handle_ui_drawer(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!ui_shell_get_drawer_snapshot(&drawer)) {
         free(buf);
@@ -673,7 +673,7 @@ static esp_err_t handle_ui_orb(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!orb_widget_get_snapshot(&orb)) {
         free(buf);
@@ -713,7 +713,7 @@ static esp_err_t handle_wifi_scan(httpd_req_t *req)
 
     if (!web_request_ensure_authorized(req)) {
         free(buf);
-        return ESP_FAIL;
+        return ESP_OK;
     }
 
     memset(results, 0, sizeof(results));
@@ -744,7 +744,7 @@ static esp_err_t handle_wifi_save(httpd_req_t *req)
     bool connected;
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (web_request_recv_body(req, body, sizeof(body)) < 0) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "body required");
@@ -769,7 +769,7 @@ static esp_err_t handle_settings_save(httpd_req_t *req)
     char value[16];
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (web_request_recv_body(req, body, sizeof(body)) < 0) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "body required");
@@ -795,7 +795,7 @@ static esp_err_t handle_orb_get(httpd_req_t *req)
     char buf[256];
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (!orb_service_get_config(&config)) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "orb unavailable");
@@ -818,7 +818,7 @@ static esp_err_t handle_orb_save(httpd_req_t *req)
     uint8_t original_theme_id;
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (web_request_recv_body(req, body, sizeof(body)) < 0) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "body required");
@@ -853,7 +853,7 @@ static esp_err_t handle_ota(httpd_req_t *req)
     int remaining;
 
     if (!web_request_ensure_authorized(req)) {
-        return ESP_FAIL;
+        return ESP_OK;
     }
     if (req->content_len <= 0 || !ota_service_begin((size_t)req->content_len)) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "invalid ota upload");
