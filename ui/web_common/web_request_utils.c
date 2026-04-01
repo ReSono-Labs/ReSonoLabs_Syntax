@@ -125,11 +125,13 @@ bool web_request_ensure_authorized(httpd_req_t *req)
     char auth[80];
 
     if (!web_request_get_header(req, "Authorization", auth, sizeof(auth))) {
-        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Authorization required");
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_send(req, "Authorization required", HTTPD_RESP_USE_STRLEN);
         return false;
     }
     if (!security_auth_authorize_bearer(auth)) {
-        httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
         return false;
     }
 

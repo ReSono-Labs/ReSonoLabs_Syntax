@@ -335,7 +335,7 @@ void provider_session_process(void)
         auth_stage = "";
     }
 
-    watchdog_interval_ms = strcmp(auth_stage, "waiting_time_sync") == 0 ? 1000LL : 5000LL;
+    watchdog_interval_ms = (strcmp(auth_stage, "waiting_time_sync") == 0) ? 15000LL : 20000LL;
     if ((now_ms - s_session.last_watchdog_ms) < watchdog_interval_ms) {
         return;
     }
@@ -430,6 +430,7 @@ bool provider_session_full_reset(void)
     provider_transport_disconnect();
     provider_transport_set_gateway_token("");
     provider_transport_forget_device_token();
+    provider_transport_set_endpoint("", 0);
 
     ok = provider_storage_clear_device_token();
     ok = provider_storage_clear_gateway_token() && ok;

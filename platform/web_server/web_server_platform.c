@@ -11,7 +11,8 @@ bool web_server_platform_start(web_server_handle_t *out_server)
 
     if (server == NULL) {
         config.lru_purge_enable = true;
-        config.max_uri_handlers = 32;
+        config.max_uri_handlers = 64;
+        config.stack_size = 8192;
         if (httpd_start(&server, &config) != ESP_OK) {
             return false;
         }

@@ -502,8 +502,10 @@ bool openclaw_has_gateway_token(void)
 
 bool openclaw_set_endpoint(const char *host, uint16_t port)
 {
-    if (!host || host[0] == '\0' || port == 0) {
-        return false;
+    if (!host || host[0] == '\0') {
+        s_host[0] = '\0';
+        s_port = 0;
+        return true;
     }
     strncpy(s_host, host, sizeof(s_host) - 1);
     s_host[sizeof(s_host) - 1] = '\0';
@@ -1466,7 +1468,7 @@ void openclaw_connect(void)
         .reconnect_timeout_ms = 0,
         .network_timeout_ms   = 10000,
         .task_prio            = 5,
-        .task_stack           = 12288,
+        .task_stack           = 16384,
         .buffer_size          = 1024,
         // Keep low during auth; handshake challenge can otherwise stall near 10s.
         .ping_interval_sec    = 1,

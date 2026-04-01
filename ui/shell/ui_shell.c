@@ -232,7 +232,7 @@ static bool shell_create_drawer_ui(const ui_shell_layout_t *layout)
 {
     const lv_coord_t width = 300;
     const lv_coord_t slider_width = 240;
-    const lv_coord_t slider_y = 265;
+    const lv_coord_t slider_y = 235;
 
     s_drawer = lv_obj_create(s_screen);
     if (s_drawer == NULL) {
@@ -264,16 +264,16 @@ static bool shell_create_drawer_ui(const ui_shell_layout_t *layout)
         lv_obj_set_style_shadow_width(handle, 0, 0);
     }
 
-    s_drawer_title_pin = shell_make_drawer_title(s_drawer, "SECURITY", 0, 50);
-    s_drawer_pin = shell_make_drawer_value(s_drawer, "------", 0, 73, width, &lv_font_montserrat_14);
+    s_drawer_title_pin = shell_make_drawer_title(s_drawer, "SECURITY", 0, 15);
+    s_drawer_pin = shell_make_drawer_value(s_drawer, "------", 0, 32, width, &lv_font_montserrat_16);
 
-    s_drawer_title_ssid = shell_make_drawer_title(s_drawer, "NETWORK", 0, 110);
-    s_drawer_ssid = shell_make_drawer_value(s_drawer, "---", 0, 133, width, &lv_font_montserrat_14);
+    s_drawer_title_ssid = shell_make_drawer_title(s_drawer, "NETWORK", 0, 85);
+    s_drawer_ssid = shell_make_drawer_value(s_drawer, "---", 0, 108, width, &lv_font_montserrat_14);
 
-    s_drawer_title_ip = shell_make_drawer_title(s_drawer, "IP ADDRESS", 0, 175);
-    s_drawer_ip = shell_make_drawer_value(s_drawer, "---", 0, 198, width, &lv_font_montserrat_14);
+    s_drawer_title_ip = shell_make_drawer_title(s_drawer, "IP ADDRESS", 0, 145);
+    s_drawer_ip = shell_make_drawer_value(s_drawer, "---", 0, 168, width, &lv_font_montserrat_14);
 
-    s_drawer_title_volume = shell_make_drawer_title(s_drawer, "VOLUME", 0, 240);
+    s_drawer_title_volume = shell_make_drawer_title(s_drawer, "VOLUME", 0, 210);
     s_drawer_volume_slider = lv_slider_create(s_drawer);
     lv_slider_set_range(s_drawer_volume_slider, 0, 100);
     lv_slider_set_value(s_drawer_volume_slider, 70, LV_ANIM_OFF);
@@ -287,8 +287,8 @@ static bool shell_create_drawer_ui(const ui_shell_layout_t *layout)
     lv_obj_set_style_pad_all(s_drawer_volume_slider, 6, LV_PART_KNOB);
     s_drawer_volume = NULL;
 
-    s_drawer_title_power = shell_make_drawer_title(s_drawer, "POWER", 0, 288);
-    s_drawer_power = shell_make_drawer_value(s_drawer, "USB off", 0, 309, width, &lv_font_montserrat_14);
+    s_drawer_title_power = shell_make_drawer_title(s_drawer, "POWER", 0, 258);
+    s_drawer_power = shell_make_drawer_value(s_drawer, "USB off", 0, 279, width, &lv_font_montserrat_14);
 
     {
         lv_obj_t *hint = lv_label_create(s_drawer);
@@ -388,13 +388,13 @@ static bool shell_create_notification_drawer_ui(const ui_shell_layout_t *layout)
 
 static bool shell_lvgl_lock(TickType_t timeout)
 {
-    return s_lvgl_mutex != NULL && xSemaphoreTake(s_lvgl_mutex, timeout) == pdTRUE;
+    return s_lvgl_mutex != NULL && xSemaphoreTakeRecursive(s_lvgl_mutex, timeout) == pdTRUE;
 }
 
 static void shell_lvgl_unlock(void)
 {
     if (s_lvgl_mutex != NULL) {
-        xSemaphoreGive(s_lvgl_mutex);
+        xSemaphoreGiveRecursive(s_lvgl_mutex);
     }
 }
 
@@ -450,7 +450,7 @@ static bool shell_lvgl_init_display(void)
         ESP_LOGE(TAG, "LVGL tick timer start failed");
         return false;
     }
-    s_lvgl_mutex = xSemaphoreCreateMutex();
+    s_lvgl_mutex = xSemaphoreCreateRecursiveMutex();
     if (s_lvgl_mutex == NULL) {
         ESP_LOGE(TAG, "LVGL mutex create failed");
         return false;
@@ -1014,10 +1014,14 @@ bool ui_shell_get_layout(ui_shell_layout_t *out_layout)
 
 void ui_shell_sync_from_state(app_state_t state)
 {
+    if (!shell_lvgl_lock(portMAX_DELAY)) {
+        return;
+    }
     s_shell.status.app_state = state;
     s_shell.status.presentation = presentation_from_state(state);
     orb_widget_apply_presentation(s_shell.status.presentation.visual);
     shell_refresh_labels();
+    shell_lvgl_unlock();
 }
 
 bool ui_shell_notification_upsert(const char *notification_id, const char *summary)
@@ -1071,6 +1075,11 @@ void ui_shell_sync_from_services(void)
     runtime_snapshot_t runtime;
     bool have_power = false;
     orb_config_t orb_config;
+
+    if (!shell_lvgl_lock(portMAX_DELAY)) {
+        return;
+    }
+
     memset(pin, 0, sizeof(pin));
     memset(ip, 0, sizeof(ip));
     memset(ssid, 0, sizeof(ssid));
@@ -1111,6 +1120,8 @@ void ui_shell_sync_from_services(void)
     s_shell.status.drawer_visible = drawer_is_visible();
     shell_refresh_labels();
     shell_apply_drawer_visibility();
+
+    shell_lvgl_unlock();
 }
 
 void ui_shell_process(void)

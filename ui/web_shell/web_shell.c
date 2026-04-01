@@ -581,7 +581,7 @@ static esp_err_t handle_ui_layout(httpd_req_t *req)
 static esp_err_t handle_ui_shell_status(httpd_req_t *req)
 {
     ui_shell_status_t status;
-    char *buf = malloc(WEB_BUF_LARGE);
+    char *buf = malloc(WEB_BUF_MEDIUM);
 
     if (buf == NULL) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
@@ -596,7 +596,7 @@ static esp_err_t handle_ui_shell_status(httpd_req_t *req)
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "shell status unavailable");
     }
 
-    snprintf(buf, WEB_BUF_LARGE,
+    snprintf(buf, WEB_BUF_MEDIUM,
              "{\n"
              "  \"app_state\": %d,\n"
              "  \"presentation_visual\": %d,\n"
@@ -623,7 +623,7 @@ static esp_err_t handle_ui_shell_status(httpd_req_t *req)
 static esp_err_t handle_ui_drawer(httpd_req_t *req)
 {
     drawer_snapshot_t drawer;
-    char *buf = malloc(WEB_BUF_LARGE);
+    char *buf = malloc(WEB_BUF_MEDIUM);
 
     if (buf == NULL) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
@@ -638,7 +638,7 @@ static esp_err_t handle_ui_drawer(httpd_req_t *req)
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "drawer unavailable");
     }
 
-    snprintf(buf, WEB_BUF_LARGE,
+    snprintf(buf, WEB_BUF_MEDIUM,
              "{\n"
              "  \"pin\": \"%s\",\n"
              "  \"ip\": \"%s\",\n"
@@ -665,7 +665,7 @@ static esp_err_t handle_ui_drawer(httpd_req_t *req)
 static esp_err_t handle_ui_orb(httpd_req_t *req)
 {
     orb_widget_snapshot_t orb;
-    char *buf = malloc(WEB_BUF_LARGE);
+    char *buf = malloc(WEB_BUF_MEDIUM);
 
     if (buf == NULL) {
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
@@ -680,7 +680,7 @@ static esp_err_t handle_ui_orb(httpd_req_t *req)
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "orb snapshot unavailable");
     }
 
-    snprintf(buf, WEB_BUF_LARGE,
+    snprintf(buf, WEB_BUF_MEDIUM,
              "{\n"
              "  \"initialized\": %s,\n"
              "  \"visual\": %d,\n"

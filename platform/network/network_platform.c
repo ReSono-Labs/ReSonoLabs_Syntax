@@ -6,6 +6,7 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_mac.h"
 #include "esp_sntp.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
@@ -27,6 +28,11 @@ static board_profile_t s_board;
 static esp_netif_t *s_sta_netif;
 static esp_netif_t *s_ap_netif;
 static EventGroupHandle_t s_wifi_events;
+
+static void time_sync_notification_cb(struct timeval *tv)
+{
+    ESP_LOGI(TAG, "Notification of a time synchronization event");
+}
 
 static void network_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -53,8 +59,11 @@ static void network_event_handler(void *arg, esp_event_base_t event_base, int32_
         }
         esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
         esp_sntp_setservername(0, "pool.ntp.org");
+        esp_sntp_setservername(1, "time.google.com");
+        esp_sntp_setservername(2, "time.apple.com");
+        esp_sntp_set_time_sync_notification_cb(time_sync_notification_cb);
         esp_sntp_init();
-        ESP_LOGI(TAG, "SNTP sync started");
+        ESP_LOGI(TAG, "SNTP sync started (pool, google, apple)");
         xEventGroupSetBits(s_wifi_events, WIFI_CONNECTED_BIT);
         return;
     }
@@ -129,7 +138,7 @@ static bool ensure_wifi_started(void)
     if (err != ESP_OK && err != ESP_ERR_WIFI_CONN && err != ESP_ERR_WIFI_NOT_INIT) {
         return false;
     }
-    if (esp_wifi_set_ps(WIFI_PS_NONE) != ESP_OK) {
+    if (esp_wifi_set_ps(WIFI_PS_MIN_MODEM) != ESP_OK) {
         return false;
     }
 
@@ -143,7 +152,9 @@ static void build_setup_ap_ssid(char *buf, size_t buf_len)
         return;
     }
 
-    snprintf(buf, buf_len, "ReSono Labs Syntax");
+    char mac[6];
+    esp_read_mac((uint8_t *)mac, ESP_MAC_WIFI_SOFTAP);
+    snprintf(buf, buf_len, "ReSono Labs Syntax %02X%02X", mac[4], mac[5]);
 }
 
 bool network_platform_init(const board_profile_t *board)

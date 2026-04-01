@@ -69,7 +69,7 @@ typedef struct {
 static app_context_t s_app;
 static const char *TAG = "app";
 static EXT_RAM_BSS_ATTR uint8_t s_mic_ring[16384];
-static uint8_t s_mic_pop_buf[1536];
+static EXT_RAM_BSS_ATTR uint8_t s_mic_pop_buf[1536];
 static EXT_RAM_BSS_ATTR uint8_t s_audio_decode_buf[16384];
 static portMUX_TYPE s_mic_ring_lock = portMUX_INITIALIZER_UNLOCKED;
 #define APP_MIC_RING_HIGH_WATER 1024U
