@@ -212,26 +212,26 @@ static bool s3_1_85c_input_init(void)
     memset(&s_input_state, 0, sizeof(s_input_state));
 
     if (s3_1_85c_support_init() != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot board support init failed");
+        ESP_LOGE(TAG, "syntax board support init failed");
         return false;
     }
     if (esp_lcd_new_panel_io_i2c(s3_1_85c_support_i2c_bus(), &tp_io_cfg, &tp_io) != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot touch io init failed");
+        ESP_LOGE(TAG, "syntax touch io init failed");
         return false;
     }
     if (esp_lcd_touch_new_i2c_cst816s(tp_io, &tp_cfg, &s_input_state.handle) != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot touch driver init failed");
+        ESP_LOGE(TAG, "syntax touch driver init failed");
         return false;
     }
     if (esp_lcd_panel_io_tx_param(tp_io, CST816S_AUTOSLEEP_REG, &autosleep_disable, 1) != ESP_OK) {
-        ESP_LOGW(TAG, "deskbot touch autosleep disable failed");
+        ESP_LOGW(TAG, "syntax touch autosleep disable failed");
     }
     if (gpio_config(&int_gpio) != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot touch int gpio failed");
+        ESP_LOGE(TAG, "syntax touch int gpio failed");
         return false;
     }
     if (gpio_config(&boot_gpio) != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot boot button gpio failed");
+        ESP_LOGE(TAG, "syntax boot button gpio failed");
         return false;
     }
 

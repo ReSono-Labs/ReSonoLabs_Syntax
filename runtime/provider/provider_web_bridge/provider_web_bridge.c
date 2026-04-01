@@ -33,7 +33,7 @@ static const char *transport_state_name(provider_transport_state_t state)
 static const char *s_provider_section_html =
     "<section><h2>OpenClaw Pairing</h2>"
     "<div id='provider_status' class='muted'><i>Loading OpenClaw status...</i></div>"
-    "<div class='muted'><b>DeskBot uses OpenClaw device auth flow</b></div>"
+    "<div class='muted'><b>ReSono Labs Syntax uses OpenClaw device auth flow</b></div>"
     "<div class='muted'>OpenClaw IP / Host: <span id='provider_host'>-</span></div>"
     "<button onclick='refreshOpenClawStatus()'>Refresh OpenClaw Status</button>"
     "<input id='provider_endpoint_host' placeholder='OpenClaw IP or host'>"
@@ -45,7 +45,7 @@ static const char *s_provider_section_html =
     "<button onclick='reconnectOpenClaw()'>Reconnect OpenClaw</button>"
     "<button onclick='forgetOpenClawDeviceToken()'>Forget Device Token</button>"
     "<button onclick='resetOpenClaw()'>Full OpenClaw Reset (Clear Gateway + Device Tokens)</button>"
-    "<div class='muted'>Use <b>Reconnect OpenClaw</b> after approving a pending DeskBot device in OpenClaw. Do not re-pair unless you intend to create a new device identity.</div>"
+    "<div class='muted'>Use <b>Reconnect OpenClaw</b> after approving a pending ReSono Labs Syntax device in OpenClaw. Do not re-pair unless you intend to create a new device identity.</div>"
     "<div id='provider' class='muted'></div></section>";
 
 static const char *s_provider_section_js =

@@ -81,7 +81,7 @@ static const char *s_index_html_prefix =
     ".pin_digit:focus{border-color:#3b82f6;box-shadow:0 0 15px rgba(59,130,246,0.5)}details{background:#1a222c;border-radius:8px;padding:8px 12px;border:1px solid #334155}summary{font-weight:600;cursor:pointer;padding:4px;outline:none}"
     ".status_grid{display:grid;grid-template-columns:1fr 1.5fr;gap:8px;margin-top:10px;font-size:13px}.status_label{color:#94a3b8;font-weight:500}.status_value{color:#edf2f7;text-align:right}"
     "</style></head><body>"
-    "<div id='pin_overlay'><h1>Device Locked</h1><div class='muted'>Enter the 6-digit Dev PIN found in the device Info Drawer.</div>"
+    "<div id='pin_overlay'><div class='muted' style='font-size:14px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px'>ReSono Labs Syntax</div><h1>Device Locked</h1><div class='muted'>Enter the 6-digit Dev PIN found in the device Info Drawer.</div>"
     "<div class='pin_container'>"
     "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p1' oninput='moveNext(this, \"p2\")' onkeydown='moveBack(event, null)'>"
     "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p2' oninput='moveNext(this, \"p3\")' onkeydown='moveBack(event, \"p1\")'>"

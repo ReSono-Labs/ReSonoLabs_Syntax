@@ -268,22 +268,22 @@ static esp_err_t s3_1_85c_panel_clear_black(void)
 static bool s3_1_85c_display_init(void)
 {
     if (s3_1_85c_support_init() != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot board support init failed");
+        ESP_LOGE(TAG, "syntax board support init failed");
         return false;
     }
     if (s3_1_85c_backlight_init() != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot backlight init failed");
+        ESP_LOGE(TAG, "syntax backlight init failed");
         return false;
     }
     if (s3_1_85c_panel_init() != ESP_OK) {
-        ESP_LOGE(TAG, "deskbot panel init failed");
+        ESP_LOGE(TAG, "syntax panel init failed");
         return false;
     }
     if (s3_1_85c_panel_clear_black() != ESP_OK) {
-        ESP_LOGW(TAG, "deskbot panel clear failed");
+        ESP_LOGW(TAG, "syntax panel clear failed");
     }
     if (s3_1_85c_backlight_set(s_backlight_percent) != ESP_OK) {
-        ESP_LOGW(TAG, "deskbot backlight set failed");
+        ESP_LOGW(TAG, "syntax backlight set failed");
     }
     return true;
 }

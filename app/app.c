@@ -545,7 +545,7 @@ static void app_mic_stream_task(void *ctx)
 static void app_on_state_changed(app_state_t state, void *ctx)
 {
     (void)ctx;
-    ESP_LOGI(TAG, "State changed -> %d", (int)state);
+    // ESP_LOGI(TAG, "State changed -> %d", (int)state);
     s_app.state_since_ms = app_now_ms();
     if (state != APP_STATE_LISTENING && !s_app.mic_drain_pending && s_app.mic_streaming) {
         app_stop_mic_capture();

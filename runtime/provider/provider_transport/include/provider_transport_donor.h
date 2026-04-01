@@ -120,7 +120,7 @@ int64_t openclaw_get_chat_block_remaining_ms(void);
 const char *openclaw_get_chat_block_reason(void);
 
 /**
- * DeskBot terminal-mode session helpers.
+ * ReSono Labs Syntax terminal-mode session helpers.
  * These target the planned plugin RPC surface and keep firmware transport logic
  * local to the existing OpenClaw websocket client.
  */

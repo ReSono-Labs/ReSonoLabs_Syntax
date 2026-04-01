@@ -1,6 +1,6 @@
-# DeskBot Setup Guide
+# ReSono Labs Syntax Setup Guide
 
-Follow these steps to connect your DeskBot to Wi-Fi and pair it with your OpenClaw server.
+Follow these steps to connect your ReSono Labs Syntax device to Wi-Fi and pair it with your OpenClaw server.
 
 ## 1. Initial Wi-Fi Setup (Hotspot Mode)
 
@@ -15,12 +15,12 @@ When the device is fresh or cannot find a saved network:
 
 Once the device is on your network:
 1.  **Open Control Panel**: In your browser, go to **`http://<DEVICE_IP>`** (replace with the IP shown on the device).
-2.  **Get the Dev PIN**: On the DeskBot screen, **swipe down from the top** to open the Info Drawer. You will see a **6-digit Security PIN**.
-3.  **Unlock**: Enter this PIN into the "Desk Bot Locked" section of the web portal and click **Unlock**.
+2.  **Get the Dev PIN**: On the ReSono Labs Syntax screen, **swipe down from the top** to open the Info Drawer. You will see a **6-digit Security PIN**.
+3.  **Unlock**: Enter this PIN into the "Device Locked" section of the web portal and click **Unlock**.
 
 ## 3. OpenClaw Integration
 
-To connect DeskBot to your OpenClaw assistant:
+To connect ReSono Labs Syntax to your OpenClaw assistant:
 1.  **Configure Endpoint**: In the "OpenClaw Pairing" section of the web portal, enter your **OpenClaw Server IP/Host** and **Port**. Click **Save OpenClaw Endpoint**.
 2.  **Add Gateway Token**: 
     -   Ensure your OpenClaw server's **Auth Mode** is set to **`token`**.
@@ -29,11 +29,11 @@ To connect DeskBot to your OpenClaw assistant:
 3.  **Approve Pairing**: 
     -   Log into your **OpenClaw Server Dashboard**.
     -   Go to the **Nodes** section.
-    -   Look for a new device pairing request titled "**DeskBot**".
+    -   Look for a new device pairing request titled "**ReSono Labs Syntax**".
     -   Click **Approve**.
-4.  **Reconnect**: Return to the DeskBot web portal and click **Reconnect OpenClaw**.
+4.  **Reconnect**: Return to the ReSono Labs Syntax web portal and click **Reconnect OpenClaw**.
 
-Your DeskBot should now transition to "READY" and be able to receive voice commands!
+Your ReSono Labs Syntax device should now transition to "READY" and be able to receive voice commands!
 
 ---
 

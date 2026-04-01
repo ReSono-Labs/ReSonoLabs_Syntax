@@ -439,6 +439,26 @@ static bool terminal_event_matches_active_session(const char *json)
     return strcmp(terminal_session_id, s_terminal_session_id) == 0;
 }
 
+static bool openclaw_should_log_rx_frame(const char *type_name, const char *event_name)
+{
+    if (!type_name || type_name[0] == '\0') {
+        return false;
+    }
+    if (strcmp(type_name, "error") == 0) {
+        return true;
+    }
+    if (strcmp(type_name, "event") != 0 || !event_name || event_name[0] == '\0') {
+        return false;
+    }
+    return strcmp(event_name, "connect.challenge") == 0 ||
+           strcmp(event_name, "chat") == 0 ||
+           strcmp(event_name, "deskbot.results.pending") == 0 ||
+           strcmp(event_name, "deskbot.results.ready") == 0 ||
+           strcmp(event_name, "deskbot.results.clear") == 0 ||
+           strcmp(event_name, "deskbot.results.replay") == 0 ||
+           strcmp(event_name, "deskbot.session.error") == 0;
+}
+
 // ── NVS token storage ─────────────────────────────────────────────────────────
 
 static void token_load(void)
@@ -839,11 +859,11 @@ static void openclaw_send_connect_req(const char *nonce)
         openclaw_ws_teardown();
         return;
     }
-    ESP_LOGW(TAG, "OpenClaw: connect attempt #%lu nonce_len=%u signedAt=%llu token=%s",
-             (unsigned long)s_ws_connect_attempts,
-             (unsigned)strlen(nonce),
-             (unsigned long long)signed_at_ms,
-             auth_token[0] ? "set" : "EMPTY");
+    // ESP_LOGW(TAG, "OpenClaw: connect attempt #%lu nonce_len=%u signedAt=%llu token=%s",
+    //          (unsigned long)s_ws_connect_attempts,
+    //          (unsigned)strlen(nonce),
+    //          (unsigned long long)signed_at_ms,
+    //          auth_token[0] ? "set" : "EMPTY");
 
     // Must match gateway buildDeviceAuthPayload():
     // v2|deviceId|clientId|clientMode|role|scopesCsv|signedAtMs|token|nonce
@@ -885,7 +905,7 @@ static void openclaw_send_connect_req(const char *nonce)
                      "{"
                      "\"minProtocol\":%d,"
                      "\"maxProtocol\":%d,"
-                     "\"client\":{\"id\":\"%s\",\"displayName\":\"DeskBot ESP32\",\"version\":\"esp-idf\",\"platform\":\"esp32s3\",\"mode\":\"%s\"},"
+                     "\"client\":{\"id\":\"%s\",\"displayName\":\"ReSono Labs Syntax\",\"version\":\"esp-idf\",\"platform\":\"esp32s3\",\"mode\":\"%s\"},"
                      "\"role\":\"%s\","
                      "\"scopes\":[\"operator.read\",\"operator.write\",\"operator.admin\"],"
                      "\"caps\":[\"tool-events\"],"
@@ -909,7 +929,7 @@ static void openclaw_send_connect_req(const char *nonce)
                      "{"
                      "\"minProtocol\":%d,"
                      "\"maxProtocol\":%d,"
-                     "\"client\":{\"id\":\"%s\",\"displayName\":\"DeskBot ESP32\",\"version\":\"esp-idf\",\"platform\":\"esp32s3\",\"mode\":\"%s\"},"
+                     "\"client\":{\"id\":\"%s\",\"displayName\":\"ReSono Labs Syntax\",\"version\":\"esp-idf\",\"platform\":\"esp32s3\",\"mode\":\"%s\"},"
                      "\"role\":\"%s\","
                      "\"scopes\":[\"operator.read\",\"operator.write\",\"operator.admin\"],"
                      "\"caps\":[\"tool-events\"],"
@@ -943,7 +963,7 @@ static void openclaw_send_connect_req(const char *nonce)
         s_last_connect_req_ms = send_ts_ms;
         diag_log(DIAG_MODULE_OPENCLAW, DIAG_LOG_INFO, "connect request sent");
         oc_diag_status(NULL);
-        ESP_LOGI(TAG, "OpenClaw: connect req sent id=%s", s_connect_req_id);
+        // ESP_LOGI(TAG, "OpenClaw: connect req sent id=%s", s_connect_req_id);
     }
 }
 
@@ -970,7 +990,7 @@ static void ws_event_handler(void *arg,
         // Keep ping at 1s during auth to flush connect.challenge promptly.
         esp_websocket_client_set_ping_interval_sec(s_ws, 1);
         xEventGroupSetBits(s_evg, EVT_CONNECTED);
-        ESP_LOGI(TAG, "OpenClaw: waiting for connect.challenge");
+        // ESP_LOGI(TAG, "OpenClaw: waiting for connect.challenge");
         break;
 
     case WEBSOCKET_EVENT_DISCONNECTED:
@@ -1001,13 +1021,13 @@ static void ws_event_handler(void *arg,
             }
             s_ws_data_events++;
             if (s_state == OPENCLAW_STATE_CONNECTING) {
-                ESP_LOGW(TAG, "OpenClaw: ws data#%lu len=%d payload_len=%d off=%d fin=%d op=%u",
-                         (unsigned long)s_ws_data_events,
-                         data->data_len,
-                         data->payload_len,
-                         data->payload_offset,
-                         data->fin ? 1 : 0,
-                         (unsigned)data->op_code);
+                // ESP_LOGW(TAG, "OpenClaw: ws data#%lu len=%d payload_len=%d off=%d fin=%d op=%u",
+                //          (unsigned long)s_ws_data_events,
+                //          data->data_len,
+                //          data->payload_len,
+                //          data->payload_offset,
+                //          data->fin ? 1 : 0,
+                //          (unsigned)data->op_code);
             }
             // Reassemble fragmented websocket payloads (challenge/events may span chunks).
             if (data->payload_offset == 0) {
@@ -1065,10 +1085,7 @@ static void ws_event_handler(void *arg,
                          type_name[0] ? type_name : "-",
                          event_name[0] ? event_name : "-",
                          s_ws_msg_len);
-            } else if (type_name[0] != '\0' &&
-                       (strcmp(type_name, "res") == 0 || strcmp(type_name, "error") == 0 ||
-                        (strcmp(type_name, "event") == 0 && event_name[0] != '\0' &&
-                         strcmp(event_name, "health") != 0 && strcmp(event_name, "tick") != 0))) {
+            } else if (openclaw_should_log_rx_frame(type_name, event_name)) {
                 ESP_LOGI(TAG, "OpenClaw RX frame type=%s event=%s len=%d",
                          type_name,
                          event_name[0] ? event_name : "-",
@@ -1085,7 +1102,7 @@ static void ws_event_handler(void *arg,
                 s_last_challenge_rx_ms = oc_now_ms();
                 diag_log(DIAG_MODULE_OPENCLAW, DIAG_LOG_INFO, "challenge received");
                 oc_diag_status(NULL);
-                ESP_LOGW(TAG, "OpenClaw: connect challenge #%lu received", (unsigned long)s_ws_challenge_events);
+                // ESP_LOGW(TAG, "OpenClaw: connect challenge #%lu received", (unsigned long)s_ws_challenge_events);
                 openclaw_send_connect_req(nonce);
                 break;
             }
