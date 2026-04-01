@@ -4,7 +4,8 @@ This project is built using the **Espressif IoT Development Framework (ESP-IDF)*
 
 ## 🛠 Prerequisites
 
-1.  **ESP-IDF SDK**: Ensure you have ESP-IDF installed (v5.1 or newer recommended).
+1.  **ESP-IDF SDK**: This project is currently using **ESP-IDF v6.1-dev** (Development Branch). 
+    - *Note: While it likely works on v5.x, the current build environment is pointing to v6.1-dev.*
 2.  **Hardware**: ESP32-S3-Touch-LCD-1.85C board connected via USB.
 
 ## 🚀 Quick Start (Linux & macOS)
