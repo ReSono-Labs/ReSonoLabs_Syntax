@@ -70,7 +70,7 @@ static const char *s_provider_section_js =
     "async function forgetOpenClawDeviceToken(){const r=await fetchAuthed('/api/provider/forget-device-token',{method:'POST',headers:headers()}); show('provider',await r.text()); refreshOpenClawStatus();}"
     "async function resetOpenClaw(){const r=await fetchAuthed('/api/provider/full-reset',{method:'POST',headers:headers()}); show('provider',await r.text()); refreshOpenClawStatus();}"
     "function startOpenClawStatusPolling(){if(openClawStatusPoll)return;refreshOpenClawStatus();openClawStatusPoll=setInterval(refreshOpenClawStatus,3000);}"
-    "document.addEventListener('DOMContentLoaded',()=>{if(localStorage.getItem('deskbot_dev_pin'))startOpenClawStatusPolling();});";
+    "document.addEventListener('DOMContentLoaded',()=>{if(localStorage.getItem('resono_syntax_dev_pin'))startOpenClawStatusPolling();});";
 
 static void url_decode(char *dst, size_t dst_len, const char *src)
 {

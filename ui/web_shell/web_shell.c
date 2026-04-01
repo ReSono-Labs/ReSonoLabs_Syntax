@@ -111,8 +111,8 @@ static const char *s_index_html_prefix =
 static const char *s_index_html_suffix =
     "<section><h2>OTA</h2><input id='ota' type='file'><button onclick='uploadOta()'>Upload OTA</button><div id='ota_status' class='muted'></div></section>"
     "<script>"
-    "let token=localStorage.getItem('deskbot_dev_pin')||'';"
-    "function persistToken(value){token=value||''; if(token){localStorage.setItem('deskbot_dev_pin',token); hideOverlay();}else{localStorage.removeItem('deskbot_dev_pin'); showOverlay();}}"
+    "let token=localStorage.getItem('resono_syntax_dev_pin')||'';"
+    "function persistToken(value){token=value||''; if(token){localStorage.setItem('resono_syntax_dev_pin',token); hideOverlay();}else{localStorage.removeItem('resono_syntax_dev_pin'); showOverlay();}}"
     "function hideOverlay(){document.getElementById('pin_overlay').style.display='none';}"
     "function showOverlay(){document.getElementById('pin_overlay').style.display='flex'; document.querySelectorAll('.pin_digit').forEach(i=>i.value=''); document.getElementById('p1').focus();}"
     "function moveNext(curr, nextId){ if(curr.value.length === 1) document.getElementById(nextId).focus(); }"

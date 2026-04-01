@@ -753,7 +753,7 @@ static bool openclaw_terminal_send_method(const char *method, const char *body_f
 
     int n = snprintf(params, params_cap,
                      "{"
-                     "\"sessionKey\":\"agent:main:deskbot\","
+                     "\"sessionKey\":\"agent:main:resono-labs-openclaw-bridge\","
                      "\"deviceId\":\"%s\","
                      "\"terminalSessionId\":\"%s\"%s%s"
                      "}",
@@ -1787,7 +1787,7 @@ bool openclaw_ask(const char *question, char *answer_buf, size_t answer_buf_sz)
     int n = snprintf(params,
                      5120,
                      "{"
-                     "\"sessionKey\":\"deskbot\","
+                     "\"sessionKey\":\"agent:main:resono-labs-openclaw-bridge\","
                      "\"message\":\"%s\","
                      "\"deliver\":false,"
                      "\"idempotencyKey\":\"%s\""
