@@ -128,10 +128,10 @@ static void openclaw_register_results_listener(void)
     }
 
     snprintf(params, sizeof(params), "\"deviceId\":\"%s\"", s_device_id);
-    if (!openclaw_send_device_method("deskbot.results.register", params)) {
-        ESP_LOGW(TAG, "deskbot.results.register send failed for device=%s", s_device_id);
+    if (!openclaw_send_device_method("device-bridge.results.register", params)) {
+        ESP_LOGW(TAG, "device-bridge.results.register send failed for device=%s", s_device_id);
     } else {
-        ESP_LOGI(TAG, "deskbot.results.register sent for device=%s", s_device_id);
+        ESP_LOGI(TAG, "device-bridge.results.register sent for device=%s", s_device_id);
     }
 }
 
@@ -452,11 +452,11 @@ static bool openclaw_should_log_rx_frame(const char *type_name, const char *even
     }
     return strcmp(event_name, "connect.challenge") == 0 ||
            strcmp(event_name, "chat") == 0 ||
-           strcmp(event_name, "deskbot.results.pending") == 0 ||
-           strcmp(event_name, "deskbot.results.ready") == 0 ||
-           strcmp(event_name, "deskbot.results.clear") == 0 ||
-           strcmp(event_name, "deskbot.results.replay") == 0 ||
-           strcmp(event_name, "deskbot.session.error") == 0;
+           strcmp(event_name, "device-bridge.results.pending") == 0 ||
+           strcmp(event_name, "device-bridge.results.ready") == 0 ||
+           strcmp(event_name, "device-bridge.results.clear") == 0 ||
+           strcmp(event_name, "device-bridge.results.replay") == 0 ||
+           strcmp(event_name, "device-bridge.session.error") == 0;
 }
 
 // ── NVS token storage ─────────────────────────────────────────────────────────
@@ -815,7 +815,7 @@ bool openclaw_results_replay(const char *task_id)
     }
 
     snprintf(fields, sizeof(fields), "\"taskId\":\"%s\"", task_id);
-    return openclaw_send_device_method("deskbot.results.replay", fields);
+    return openclaw_send_device_method("device-bridge.results.replay", fields);
 }
 
 bool openclaw_results_consume(const char *task_id)
@@ -831,7 +831,7 @@ bool openclaw_results_consume(const char *task_id)
              "\"taskId\":\"%s\",\"consumedBy\":\"%s\"",
              task_id,
              s_device_id[0] != '\0' ? s_device_id : "device");
-    return openclaw_send_device_method("deskbot.results.consume", fields);
+    return openclaw_send_device_method("device-bridge.results.consume", fields);
 }
 
 static void openclaw_send_connect_req(const char *nonce)
@@ -1216,7 +1216,7 @@ static void ws_event_handler(void *arg,
                 if (!has_error) {
                     if (!json_get_str(msg, "\"terminalSessionId\"", s_terminal_session_id, sizeof(s_terminal_session_id)) &&
                         !json_get_str(msg, "\"sessionId\"", s_terminal_session_id, sizeof(s_terminal_session_id))) {
-                        strncpy(s_terminal_session_id, "deskbot-terminal", sizeof(s_terminal_session_id) - 1);
+                        strncpy(s_terminal_session_id, "device-bridge", sizeof(s_terminal_session_id) - 1);
                     }
                     s_terminal_active = true;
                     s_terminal_error[0] = '\0';
@@ -1226,7 +1226,7 @@ static void ws_event_handler(void *arg,
                                            strlen(s_terminal_session_id));
                 } else {
                     if (!json_get_str(msg, "\"message\"", s_terminal_error, sizeof(s_terminal_error))) {
-                        strncpy(s_terminal_error, "deskbot.session.open failed", sizeof(s_terminal_error) - 1);
+                        strncpy(s_terminal_error, "device-bridge.session.open failed", sizeof(s_terminal_error) - 1);
                     }
                     s_terminal_active = false;
                     s_terminal_session_id[0] = '\0';
@@ -1234,12 +1234,12 @@ static void ws_event_handler(void *arg,
                     openclaw_terminal_emit(OPENCLAW_TERMINAL_EVENT_ERROR,
                                            (const uint8_t *)s_terminal_error,
                                            strlen(s_terminal_error));
-                    ESP_LOGW(TAG, "deskbot.session.open failed: %s", s_terminal_error);
+                    ESP_LOGW(TAG, "device-bridge.session.open failed: %s", s_terminal_error);
                 }
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.session.output_text")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.session.output_text")) {
                 char text[512] = {0};
                 if (!terminal_event_matches_active_session(msg)) {
                     break;
@@ -1249,30 +1249,30 @@ static void ws_event_handler(void *arg,
                                            (const uint8_t *)text,
                                            strlen(text));
                 } else {
-                    ESP_LOGW(TAG, "deskbot.session.output_text present but text extraction failed");
+                    ESP_LOGW(TAG, "device-bridge.session.output_text present but text extraction failed");
                 }
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.session.output_audio")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.session.output_audio")) {
                 if (!terminal_event_matches_active_session(msg)) {
                     break;
                 }
                 if (json_get_str(msg, "\"data\"", s_terminal_audio_b64, sizeof(s_terminal_audio_b64)) &&
                     s_terminal_audio_b64[0] != '\0') {
-                    ESP_LOGD(TAG, "deskbot.session.output_audio received b64_len=%u",
+                    ESP_LOGD(TAG, "device-bridge.session.output_audio received b64_len=%u",
                              (unsigned)strlen(s_terminal_audio_b64));
                     openclaw_terminal_emit(OPENCLAW_TERMINAL_EVENT_AUDIO,
                                            (const uint8_t *)s_terminal_audio_b64,
                                            strlen(s_terminal_audio_b64));
                 } else {
-                    ESP_LOGW(TAG, "deskbot.session.output_audio present but data extraction failed (buffer=%u)",
+                    ESP_LOGW(TAG, "device-bridge.session.output_audio present but data extraction failed (buffer=%u)",
                              (unsigned)sizeof(s_terminal_audio_b64));
                 }
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.session.turn_complete")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.session.turn_complete")) {
                 if (!terminal_event_matches_active_session(msg)) {
                     break;
                 }
@@ -1282,22 +1282,22 @@ static void ws_event_handler(void *arg,
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.session.error")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.session.error")) {
                 char error_msg[256] = {0};
                 if (!terminal_event_matches_active_session(msg)) {
                     break;
                 }
                 if (!json_get_str(msg, "\"message\"", error_msg, sizeof(error_msg))) {
-                    strncpy(error_msg, "deskbot.session.error", sizeof(error_msg) - 1);
+                    strncpy(error_msg, "device-bridge.session.error", sizeof(error_msg) - 1);
                 }
-                ESP_LOGW(TAG, "deskbot.session.error received: %s", error_msg);
+                ESP_LOGW(TAG, "device-bridge.session.error received: %s", error_msg);
                 openclaw_terminal_emit(OPENCLAW_TERMINAL_EVENT_ERROR,
                                        (const uint8_t *)error_msg,
                                        strlen(error_msg));
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.results.ready")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.results.ready")) {
                 char task_id[64] = {0};
                 char summary[160] = {0};
                 char payload[256] = {0};
@@ -1311,28 +1311,28 @@ static void ws_event_handler(void *arg,
                                            (const uint8_t *)payload,
                                            strlen(payload));
                     snprintf(ack_fields, sizeof(ack_fields), "\"taskId\":\"%s\"", task_id);
-                    if (!openclaw_send_device_method("deskbot.results.ack", ack_fields)) {
-                        ESP_LOGW(TAG, "deskbot.results.ack send failed for task=%s", task_id);
+                    if (!openclaw_send_device_method("device-bridge.results.ack", ack_fields)) {
+                        ESP_LOGW(TAG, "device-bridge.results.ack send failed for task=%s", task_id);
                     }
                 } else {
-                    ESP_LOGW(TAG, "deskbot.results.ready present but parse failed");
+                    ESP_LOGW(TAG, "device-bridge.results.ready present but parse failed");
                 }
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.results.clear")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.results.clear")) {
                 char task_id[64] = {0};
                 if (json_get_str(msg, "\"taskId\"", task_id, sizeof(task_id)) && task_id[0] != '\0') {
                     openclaw_terminal_emit(OPENCLAW_TERMINAL_EVENT_NOTIFICATION_CLEAR,
                                            (const uint8_t *)task_id,
                                            strlen(task_id));
                 } else {
-                    ESP_LOGW(TAG, "deskbot.results.clear present but taskId parse failed");
+                    ESP_LOGW(TAG, "device-bridge.results.clear present but taskId parse failed");
                 }
                 break;
             }
 
-            if (json_type_is(msg, "event") && json_event_is(msg, "deskbot.results.replay")) {
+            if (json_type_is(msg, "event") && json_event_is(msg, "device-bridge.results.replay")) {
                 char task_id[64] = {0};
                 char prompt[2048] = {0};
                 char payload[2176] = {0};
@@ -1346,7 +1346,7 @@ static void ws_event_handler(void *arg,
                                            (const uint8_t *)payload,
                                            strlen(payload));
                 } else {
-                    ESP_LOGW(TAG, "deskbot.results.replay present but parse failed");
+                    ESP_LOGW(TAG, "device-bridge.results.replay present but parse failed");
                 }
                 break;
             }
@@ -1614,16 +1614,16 @@ bool openclaw_terminal_open(openclaw_terminal_event_cb_t cb, void *user_ctx)
     char params[512];
     int n = snprintf(params, sizeof(params),
                      "{"
-                     "\"sessionKey\":\"agent:main:deskbot\","
+                     "\"sessionKey\":\"agent:main:resono-labs-openclaw-bridge\","
                      "\"deviceId\":\"%s\","
-                     "\"protocol\":\"deskbot-terminal-v1\""
+                     "\"protocol\":\"device-bridge-v1\""
                      "}",
                      s_device_id);
     if (n <= 0 || n >= (int)sizeof(params)) {
         return false;
     }
 
-    if (!openclaw_send_req_frame(s_terminal_open_req_id, "deskbot.session.open", params)) {
+    if (!openclaw_send_req_frame(s_terminal_open_req_id, "device-bridge.session.open", params)) {
         return false;
     }
 
@@ -1670,7 +1670,7 @@ bool openclaw_terminal_send_audio(const uint8_t *audio_data, size_t audio_len)
         return false;
     }
 
-    bool ok = openclaw_terminal_send_method("deskbot.session.input_audio", fields);
+    bool ok = openclaw_terminal_send_method("device-bridge.session.input_audio", fields);
     free(fields);
     return ok;
 }
@@ -1704,25 +1704,25 @@ bool openclaw_terminal_send_text(const char *text)
         return false;
     }
 
-    bool ok = openclaw_terminal_send_method("deskbot.session.input_text", fields);
+    bool ok = openclaw_terminal_send_method("device-bridge.session.input_text", fields);
     free(fields);
     return ok;
 }
 
 bool openclaw_terminal_activity_start(void)
 {
-    return openclaw_terminal_send_method("deskbot.session.activity_start", NULL);
+    return openclaw_terminal_send_method("device-bridge.session.activity_start", NULL);
 }
 
 bool openclaw_terminal_activity_end(void)
 {
-    return openclaw_terminal_send_method("deskbot.session.activity_end", NULL);
+    return openclaw_terminal_send_method("device-bridge.session.activity_end", NULL);
 }
 
 void openclaw_terminal_close(void)
 {
     if (s_terminal_active) {
-        openclaw_terminal_send_method("deskbot.session.close", NULL);
+        openclaw_terminal_send_method("device-bridge.session.close", NULL);
     }
     s_terminal_active = false;
     s_terminal_session_id[0] = '\0';
