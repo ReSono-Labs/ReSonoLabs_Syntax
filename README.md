@@ -2,6 +2,8 @@
 
 ReSono Labs Syntax is the ESP32-S3 firmware for the ReSono Labs Syntax voice device. It handles first-boot Wi-Fi provisioning, the local web control panel, touchscreen/device UI, audio capture and playback, OTA upload, and the live OpenClaw device bridge used for real-time voice sessions and deferred task results.
 
+This repo was also structured so the application/runtime layer can be reused on other hardware targets. The current device is one implementation of the stack, not the only possible one.
+
 This project is intended to work together with the ReSono Labs OpenClaw Bridge plugin:
 
 - Bridge plugin: `https://github.com/ReSono-Labs/ReSono-Labs-OpenClaw-Bridge.git`
@@ -39,6 +41,8 @@ Important subsystems:
   OpenClaw pairing controls embedded into the local web UI.
 - `ui/drawer/` and `ui/shell/`
   On-device drawer/status UI including the Dev PIN, SSID, and IP address.
+
+For a detailed guide on reusing the application layer on other hardware, see [APPLICATION_LAYER_PORTING_GUIDE.md](/home/chris/Documents/ambitious/esp32/APPLICATION_LAYER_PORTING_GUIDE.md).
 
 ## Prerequisites
 
@@ -138,3 +142,4 @@ The local web UI includes controls to:
 
 - [SETUP_GUIDE.md](/home/chris/Documents/ambitious/esp32/SETUP_GUIDE.md)
 - [BUILD_AND_FLASH.md](/home/chris/Documents/ambitious/esp32/BUILD_AND_FLASH.md)
+- [APPLICATION_LAYER_PORTING_GUIDE.md](/home/chris/Documents/ambitious/esp32/APPLICATION_LAYER_PORTING_GUIDE.md)
