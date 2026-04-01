@@ -143,7 +143,7 @@ static void build_setup_ap_ssid(char *buf, size_t buf_len)
         return;
     }
 
-    snprintf(buf, buf_len, "%s_setup", s_board.board_id ? s_board.board_id : "esp32");
+    snprintf(buf, buf_len, "ReSono Labs Syntax");
 }
 
 bool network_platform_init(const board_profile_t *board)
