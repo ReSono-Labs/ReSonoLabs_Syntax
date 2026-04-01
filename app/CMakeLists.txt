@@ -1,0 +1,31 @@
+idf_component_register(
+    SRCS "app.c" "board_registry.c"
+    INCLUDE_DIRS
+        "include"
+        "../boards/common/include"
+        "../boards/s3_1_85c/include"
+    REQUIRES
+        state
+        presentation
+        runtime_control
+        display
+        input
+        audio
+        network
+        power
+        storage
+        web_server
+        security
+        wifi_setup
+        wifi_provisioning
+        orb
+        ota
+        settings
+        shell
+        drawer
+        widgets
+        web_shell
+        provider_state_bridge
+        provider_web_bridge
+        provider_runtime_api
+)

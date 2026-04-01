@@ -1,0 +1,12 @@
+idf_component_register(
+    SRCS
+        "provider_transport.c"
+        "provider_transport_donor.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        compact25519
+        mbedtls
+        nvs_flash
+        espressif__esp_websocket_client
+)

@@ -1,0 +1,21 @@
+build/
+managed_components/
+.claude/
+
+sdkconfig
+sdkconfig.old
+sdkconfig.generated_*
+sdkconfig.poisoned_*
+
+dependencies.lock
+
+# Scratch Documentation & Plans
+docs/
+AGNOSTIC_PLAN.md
+REPO_STRUCTURE_REVIEW.md
+WAKE_WORD_REVIEW.md
+
+*.pyc
+__pycache__/
+.DS_Store
+

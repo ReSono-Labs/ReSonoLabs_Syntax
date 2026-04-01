@@ -1,0 +1,14 @@
+idf_component_register(
+    SRCS
+        "src/compact_ed25519.c"
+        "src/compact_wipe.c"
+        "src/c25519/c25519.c"
+        "src/c25519/ed25519.c"
+        "src/c25519/edsign.c"
+        "src/c25519/f25519.c"
+        "src/c25519/fprime.c"
+        "src/c25519/sha512.c"
+    INCLUDE_DIRS
+        "src"
+        "src/c25519"
+)
