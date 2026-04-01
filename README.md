@@ -143,3 +143,7 @@ The local web UI includes controls to:
 - [SETUP_GUIDE.md](/home/chris/Documents/ambitious/esp32/SETUP_GUIDE.md)
 - [BUILD_AND_FLASH.md](/home/chris/Documents/ambitious/esp32/BUILD_AND_FLASH.md)
 - [APPLICATION_LAYER_PORTING_GUIDE.md](/home/chris/Documents/ambitious/esp32/APPLICATION_LAYER_PORTING_GUIDE.md)
+
+## License
+
+This project is licensed under the PolyForm Noncommercial License 1.0.0. See [LICENSE](/home/chris/Documents/ambitious/esp32/LICENSE).
