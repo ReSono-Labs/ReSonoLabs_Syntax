@@ -71,24 +71,34 @@ static const char *s_index_html_prefix =
     "<meta name='viewport' content='width=device-width,initial-scale=1'>"
     "<title>Device Control</title>"
     "<style>"
-    "body{font-family:sans-serif;max-width:760px;margin:20px auto;padding:0 14px;background:#101418;color:#edf2f7}"
+    "body{font-family:sans-serif;max-width:760px;margin:20px auto;padding:0 14px;background:#101418;color:#edf2f7;overflow-x:hidden}"
     "h1,h2{margin:8px 0 12px 0}section{background:#17212b;border-radius:10px;padding:14px;margin:12px 0}"
     "input,button{width:100%;box-sizing:border-box;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155}"
     "input{background:#0f1720;color:#edf2f7}button{background:#2563eb;color:#fff;border:none;font-weight:600}"
     ".row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.muted{color:#94a3b8;font-size:13px;white-space:pre-wrap}"
+    "#pin_overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,14,18,0.98);backdrop-filter:blur(15px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;animation:fadeIn 0.4s}"
+    ".pin_container{display:flex;gap:10px;margin:20px 0}.pin_digit{width:50px;height:65px;background:#1a222c;border:2px solid #334155;border-radius:12px;text-align:center;font-size:32px;font-weight:700;color:#fff;outline:none;transition:all 0.2s}"
+    ".pin_digit:focus{border-color:#3b82f6;box-shadow:0 0 15px rgba(59,130,246,0.5)}@keyframes fadeIn{from{opacity:0}to{opacity:1}}"
     "</style></head><body>"
+    "<div id='pin_overlay'><h1>Device Locked</h1><div class='muted'>Enter the 6-digit Dev PIN found in the device Info Drawer.</div>"
+    "<div class='pin_container'>"
+    "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p1' oninput='moveNext(this, \"p2\")' onkeydown='moveBack(event, null)'>"
+    "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p2' oninput='moveNext(this, \"p3\")' onkeydown='moveBack(event, \"p1\")'>"
+    "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p3' oninput='moveNext(this, \"p4\")' onkeydown='moveBack(event, \"p2\")'>"
+    "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p4' oninput='moveNext(this, \"p5\")' onkeydown='moveBack(event, \"p3\")'>"
+    "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p5' oninput='moveNext(this, \"p6\")' onkeydown='moveBack(event, \"p4\")'>"
+    "<input class='pin_digit' type='text' inputmode='numeric' maxlength='1' id='p6' oninput='checkPin(this)' onkeydown='moveBack(event, \"p5\")'>"
+    "</div><div id='auth_err' style='color:#ef4444;margin-top:10px;font-size:14px;font-weight:600'></div>"
+    "</div>"
     "<h1>Device Control</h1>"
-    "<section><h2>Desk Bot Locked</h2><div class='muted'>Enter the 6-digit Dev PIN found in the device Info Drawer.</div>"
-    "<input id='pin' inputmode='numeric' maxlength='6' placeholder='6-digit PIN'><button onclick='unlock()'>Unlock</button>"
-    "<div id='auth' class='muted'></div></section>"
     "<section><h2>Status</h2><button onclick='loadStatus()'>Refresh Status</button><div id='status' class='muted'></div></section>"
     "<section><h2>Wi-Fi</h2><button onclick='scanWifi()'>Scan Networks</button><div id='scan' class='muted'></div>"
     "<input id='ssid' placeholder='SSID'><input id='pass' type='password' placeholder='Password'>"
     "<button onclick='saveWifi()'>Save Wi-Fi</button><div id='wifi' class='muted'></div></section>"
-    "<section><h2>Settings</h2><div class='row'><input id='volume' type='number' min='0' max='100' placeholder='Volume'>"
+    "<section style='display:none'><h2>Settings</h2><div class='row'><input id='volume' type='number' min='0' max='100' placeholder='Volume'>"
     "<input id='brightness' type='number' min='5' max='100' placeholder='Brightness'></div>"
     "<button onclick='saveSettings()'>Save Settings</button><div id='settings' class='muted'></div></section>"
-    "<section><h2>Orb</h2><div class='row'><input id='theme_id' type='number' min='0' max='255' placeholder='Theme ID'>"
+    "<section style='display:none'><h2>Orb</h2><div class='row'><input id='theme_id' type='number' min='0' max='255' placeholder='Theme ID'>"
     "<input id='global_speed' type='number' step='0.01' placeholder='Global Speed'></div>"
     "<button onclick='loadOrb()'>Load Orb</button><button onclick='saveOrb()'>Save Orb</button><div id='orb' class='muted'></div></section>";
 
@@ -96,14 +106,20 @@ static const char *s_index_html_suffix =
     "<section><h2>OTA</h2><input id='ota' type='file'><button onclick='uploadOta()'>Upload OTA</button><div id='ota_status' class='muted'></div></section>"
     "<script>"
     "let token=localStorage.getItem('deskbot_dev_pin')||'';"
-    "function persistToken(value){token=value||''; if(token){localStorage.setItem('deskbot_dev_pin',token);}else{localStorage.removeItem('deskbot_dev_pin');}}"
+    "function persistToken(value){token=value||''; if(token){localStorage.setItem('deskbot_dev_pin',token); hideOverlay();}else{localStorage.removeItem('deskbot_dev_pin'); showOverlay();}}"
+    "function hideOverlay(){document.getElementById('pin_overlay').style.display='none';}"
+    "function showOverlay(){document.getElementById('pin_overlay').style.display='flex'; document.querySelectorAll('.pin_digit').forEach(i=>i.value=''); document.getElementById('p1').focus();}"
+    "function moveNext(curr, nextId){ if(curr.value.length === 1) document.getElementById(nextId).focus(); }"
+    "function moveBack(e, prevId){ if(e.key === 'Backspace' && !e.target.value && prevId) document.getElementById(prevId).focus(); }"
+    "function checkPin(curr){ if(curr.value.length === 1) unlock(); }"
     "function headers(extra){const h=extra||{}; if(token) h['Authorization']='Bearer '+token; return h;}"
-    "function show(id,msg){document.getElementById(id).textContent=msg;}"
-    "async function fetchAuthed(url,options){const r=await fetch(url,options); if(r.status===401){persistToken(''); show('auth','Unlock required');} return r;}"
-    "async function unlock(){const pin=document.getElementById('pin').value.trim();"
+    "function show(id,msg){const el=document.getElementById(id); if(el) el.textContent=msg;}"
+    "async function fetchAuthed(url,options){const r=await fetch(url,options); if(r.status===401){persistToken('');} return r;}"
+    "async function unlock(){const pin=['p1','p2','p3','p4','p5','p6'].map(id=>document.getElementById(id).value).join('');"
+    "if(pin.length < 6) return;"
     "const body='pin='+encodeURIComponent(pin);"
     "const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});"
-    "const t=await r.text(); if(!r.ok){show('auth',t);return;} persistToken(pin); show('auth','Unlocked'); if(window.startOpenClawStatusPolling) window.startOpenClawStatusPolling();}"
+    "const t=await r.text(); if(!r.ok){show('auth_err',t); document.querySelectorAll('.pin_digit').forEach(i=>i.value=''); document.getElementById('p1').focus(); return;} persistToken(pin); if(window.startOpenClawStatusPolling) window.startOpenClawStatusPolling();}"
     "async function loadStatus(){const r=await fetchAuthed('/api/status',{headers:headers()}); const t=await r.text(); show('status',t);}"
     "async function scanWifi(){show('scan','Scanning...');"
     "try{const r=await fetchAuthed('/api/wifi/scan',{headers:headers()}); const t=await r.text(); if(!r.ok){show('scan',t);return;} show('scan',t);}"
@@ -118,7 +134,7 @@ static const char *s_index_html_suffix =
     "%s"
     "async function uploadOta(){const f=document.getElementById('ota').files[0]; if(!f){show('ota_status','Select a firmware file first'); return;}"
     "const r=await fetchAuthed('/api/ota',{method:'POST',headers:headers({'Content-Type':'application/octet-stream'}),body:f}); show('ota_status',await r.text());}"
-    "if(token){show('auth','Unlocked'); if(window.startOpenClawStatusPolling) window.startOpenClawStatusPolling();}"
+    "if(token){hideOverlay(); if(window.startOpenClawStatusPolling) window.startOpenClawStatusPolling();}else{showOverlay();}"
     "</script></body></html>";
 
 static bool web_shell_initial_setup_required(void)
@@ -352,9 +368,14 @@ static esp_err_t handle_status(httpd_req_t *req)
     power_status_t power;
     runtime_snapshot_t runtime;
     const board_profile_t *board;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
+
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
 
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
 
@@ -370,7 +391,7 @@ static esp_err_t handle_status(httpd_req_t *req)
     power_platform_get_status(&power);
     runtime_control_get_snapshot(&runtime);
 
-    snprintf(buf, sizeof(buf),
+    snprintf(buf, WEB_BUF_LARGE,
              "{\n"
              "  \"state\": %d,\n"
              "  \"board_id\": \"%s\",\n"
@@ -427,24 +448,30 @@ static esp_err_t handle_status(httpd_req_t *req)
              runtime.status_detail);
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
 static esp_err_t handle_boards(httpd_req_t *req)
 {
     const board_profile_t *active_board;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
     size_t used = 0;
     size_t count;
 
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
+
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
 
     active_board = app_get_active_board();
     count = board_registry_count();
-    used += snprintf(buf + used, sizeof(buf) - used, "{\n  \"boards\": [\n");
-    for (size_t i = 0; i < count && used < sizeof(buf); ++i) {
+    used += snprintf(buf + used, WEB_BUF_LARGE - used, "{\n  \"boards\": [\n");
+    for (size_t i = 0; i < count && used < WEB_BUF_LARGE; ++i) {
         const board_profile_t *board = board_registry_get_at(i);
 
         if (board == NULL) {
@@ -452,7 +479,7 @@ static esp_err_t handle_boards(httpd_req_t *req)
         }
 
         used += snprintf(buf + used,
-                         sizeof(buf) - used,
+                         WEB_BUF_LARGE - used,
                          "    {\"board_id\":\"%s\",\"label\":\"%s\",\"target\":%d,\"display_width\":%u,\"display_height\":%u,"
                          "\"has_touch\":%s,\"has_microphone\":%s,\"has_speaker\":%s,\"has_battery_monitor\":%s,"
                          "\"has_display_backlight_control\":%s,\"supports_light_sleep\":%s,\"supports_deep_sleep\":%s,"
@@ -477,26 +504,33 @@ static esp_err_t handle_boards(httpd_req_t *req)
                          (active_board != NULL && active_board == board) ? "true" : "false",
                          (i + 1U < count) ? "," : "");
     }
-    snprintf(buf + used, sizeof(buf) - used, "  ]\n}\n");
+    snprintf(buf + used, WEB_BUF_LARGE - used, "  ]\n}\n");
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
 static esp_err_t handle_ui_layout(httpd_req_t *req)
 {
     ui_shell_layout_t layout;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
+
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
 
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
     if (!ui_shell_get_layout(&layout)) {
+        free(buf);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "layout unavailable");
     }
 
-    snprintf(buf, sizeof(buf),
+    snprintf(buf, WEB_BUF_LARGE,
              "{\n"
              "  \"display_shape\": %d,\n"
              "  \"screen_width\": %u,\n"
@@ -528,22 +562,29 @@ static esp_err_t handle_ui_layout(httpd_req_t *req)
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
 static esp_err_t handle_ui_shell_status(httpd_req_t *req)
 {
     ui_shell_status_t status;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
+
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
 
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
     if (!ui_shell_get_status(&status)) {
+        free(buf);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "shell status unavailable");
     }
 
-    snprintf(buf, sizeof(buf),
+    snprintf(buf, WEB_BUF_LARGE,
              "{\n"
              "  \"app_state\": %d,\n"
              "  \"presentation_visual\": %d,\n"
@@ -563,22 +604,29 @@ static esp_err_t handle_ui_shell_status(httpd_req_t *req)
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
 static esp_err_t handle_ui_drawer(httpd_req_t *req)
 {
     drawer_snapshot_t drawer;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
+
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
 
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
     if (!ui_shell_get_drawer_snapshot(&drawer)) {
+        free(buf);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "drawer unavailable");
     }
 
-    snprintf(buf, sizeof(buf),
+    snprintf(buf, WEB_BUF_LARGE,
              "{\n"
              "  \"pin\": \"%s\",\n"
              "  \"ip\": \"%s\",\n"
@@ -598,22 +646,29 @@ static esp_err_t handle_ui_drawer(httpd_req_t *req)
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
 static esp_err_t handle_ui_orb(httpd_req_t *req)
 {
     orb_widget_snapshot_t orb;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
+
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
 
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
     if (!orb_widget_get_snapshot(&orb)) {
+        free(buf);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "orb snapshot unavailable");
     }
 
-    snprintf(buf, sizeof(buf),
+    snprintf(buf, WEB_BUF_LARGE,
              "{\n"
              "  \"initialized\": %s,\n"
              "  \"visual\": %d,\n"
@@ -629,6 +684,7 @@ static esp_err_t handle_ui_orb(httpd_req_t *req)
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
@@ -636,10 +692,15 @@ static esp_err_t handle_wifi_scan(httpd_req_t *req)
 {
     wifi_scan_result_t results[WIFI_SCAN_LIMIT];
     size_t count;
-    char buf[WEB_BUF_LARGE];
+    char *buf = malloc(WEB_BUF_LARGE);
     size_t used = 0;
 
+    if (buf == NULL) {
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
+
     if (!web_request_ensure_authorized(req)) {
+        free(buf);
         return ESP_FAIL;
     }
 
@@ -647,18 +708,19 @@ static esp_err_t handle_wifi_scan(httpd_req_t *req)
     count = wifi_setup_service_scan(results, WIFI_SCAN_LIMIT);
     /* Match donor behavior: avoid dropping the response immediately after a blocking scan. */
     vTaskDelay(pdMS_TO_TICKS(800));
-    used += snprintf(buf + used, sizeof(buf) - used, "{\n  \"networks\": [\n");
-    for (size_t i = 0; i < count && used < sizeof(buf); ++i) {
-        used += snprintf(buf + used, sizeof(buf) - used,
+    used += snprintf(buf + used, WEB_BUF_LARGE - used, "{\n  \"networks\": [\n");
+    for (size_t i = 0; i < count && used < WEB_BUF_LARGE; ++i) {
+        used += snprintf(buf + used, WEB_BUF_LARGE - used,
                          "    {\"ssid\":\"%s\",\"rssi\":%ld}%s\n",
                          results[i].ssid,
                          (long)results[i].rssi,
                          (i + 1U < count) ? "," : "");
     }
-    snprintf(buf + used, sizeof(buf) - used, "  ]\n}\n");
+    snprintf(buf + used, WEB_BUF_LARGE - used, "  ]\n}\n");
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, buf);
+    free(buf);
     return ESP_OK;
 }
 
