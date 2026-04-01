@@ -12,5 +12,6 @@ bool storage_platform_get_str(const char *ns, const char *key, char *buf, size_t
 bool storage_platform_set_str(const char *ns, const char *key, const char *value);
 bool storage_platform_get_blob(const char *ns, const char *key, void *buf, size_t *buf_len);
 bool storage_platform_set_blob(const char *ns, const char *key, const void *value, size_t value_len);
+bool storage_platform_erase_all(void);
 
 #endif

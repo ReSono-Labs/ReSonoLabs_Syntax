@@ -582,17 +582,28 @@ static void app_on_mic_audio(const uint8_t *pcm, size_t len, void *ctx)
 static void app_on_input_event(const input_event_t *event, void *ctx)
 {
     (void)ctx;
-    if (event != NULL) {
-        ESP_LOGI(TAG,
-                 "Input event type=%d x=%d y=%d state=%d ptt=%d mic=%d drain=%d",
-                 (int)event->type,
-                 (int)event->x,
-                 (int)event->y,
-                 (int)app_state_get(),
-                 s_app.ptt_active ? 1 : 0,
-                 s_app.mic_streaming ? 1 : 0,
-                 s_app.mic_drain_pending ? 1 : 0);
+    if (event == NULL) {
+        return;
     }
+
+    ESP_LOGI(TAG,
+             "Input event type=%d x=%d y=%d state=%d ptt=%d mic=%d drain=%d",
+             (int)event->type,
+             (int)event->x,
+             (int)event->y,
+             (int)app_state_get(),
+             s_app.ptt_active ? 1 : 0,
+             s_app.mic_streaming ? 1 : 0,
+             s_app.mic_drain_pending ? 1 : 0);
+
+    if (event->type == INPUT_EVENT_BUTTON_LONG_PRESS) {
+        ESP_LOGW(TAG, "BOOT button long-press detected -> FACTORY RESET & RESTARTING DEVICE");
+        storage_platform_erase_all();
+        vTaskDelay(pdMS_TO_TICKS(500));
+        esp_restart();
+        return;
+    }
+
     ui_shell_handle_input_event(event);
 }
 

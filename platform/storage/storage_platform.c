@@ -155,3 +155,16 @@ bool storage_platform_set_blob(const char *ns, const char *key, const void *valu
     nvs_close(handle);
     return err == ESP_OK;
 }
+
+bool storage_platform_erase_all(void)
+{
+    esp_err_t err;
+
+    s_initialized = false;
+    err = nvs_flash_erase();
+    if (err != ESP_OK) {
+        return false;
+    }
+
+    return storage_platform_init();
+}

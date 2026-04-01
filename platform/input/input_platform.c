@@ -38,9 +38,12 @@ typedef struct {
     TickType_t start_tick;
     TickType_t last_poll_tick;
     esp_lcd_touch_handle_t handle;
-} s3_1_85c_touch_state_t;
+    bool boot_pressed;
+    TickType_t boot_start_tick;
+    bool boot_long_press_emitted;
+} s3_1_85c_input_state_t;
 
-static s3_1_85c_touch_state_t s_touch;
+static s3_1_85c_input_state_t s_input_state;
 
 static bool is_s3_1_85c_board(const board_profile_t *board)
 {
@@ -56,15 +59,15 @@ static bool s3_1_85c_touch_read(uint16_t *x, uint16_t *y, bool *touched)
         return false;
     }
 
-    if (s_touch.handle == NULL) {
+    if (s_input_state.handle == NULL) {
         return false;
     }
 
-    if (esp_lcd_touch_read_data(s_touch.handle) != ESP_OK) {
+    if (esp_lcd_touch_read_data(s_input_state.handle) != ESP_OK) {
         return false;
     }
 
-    if (esp_lcd_touch_get_data(s_touch.handle, &point, &points, 1) != ESP_OK) {
+    if (esp_lcd_touch_get_data(s_input_state.handle, &point, &points, 1) != ESP_OK) {
         return false;
     }
 
@@ -107,45 +110,70 @@ static void s3_1_85c_process_touch(void)
     bool touched = false;
     TickType_t now_tick = xTaskGetTickCount();
 
-    if (s_touch.handle == NULL) {
+    if (s_input_state.handle == NULL) {
         return;
     }
 
-    if ((now_tick - s_touch.last_poll_tick) < pdMS_TO_TICKS(20)) {
+    if ((now_tick - s_input_state.last_poll_tick) < pdMS_TO_TICKS(20)) {
         return;
     }
-    s_touch.last_poll_tick = now_tick;
+    s_input_state.last_poll_tick = now_tick;
 
     if (!s3_1_85c_touch_read(&x, &y, &touched)) {
         return;
     }
 
-    if (touched && !s_touch.touch_down) {
-        s_touch.touch_down = true;
-        s_touch.start_x = x;
-        s_touch.start_y = y;
-        s_touch.last_x = x;
-        s_touch.last_y = y;
-        s_touch.start_tick = now_tick;
+    if (touched && !s_input_state.touch_down) {
+        s_input_state.touch_down = true;
+        s_input_state.start_x = x;
+        s_input_state.start_y = y;
+        s_input_state.last_x = x;
+        s_input_state.last_y = y;
+        s_input_state.start_tick = now_tick;
         emit_event(INPUT_EVENT_PRESS, x, y, true);
     } else if (touched) {
-        s_touch.last_x = x;
-        s_touch.last_y = y;
-    } else if (!touched && s_touch.touch_down) {
-        int dy = (int)s_touch.last_y - (int)s_touch.start_y;
-        TickType_t duration = now_tick - s_touch.start_tick;
+        s_input_state.last_x = x;
+        s_input_state.last_y = y;
+    } else if (!touched && s_input_state.touch_down) {
+        int dy = (int)s_input_state.last_y - (int)s_input_state.start_y;
+        TickType_t duration = now_tick - s_input_state.start_tick;
 
-        emit_event(INPUT_EVENT_RELEASE, s_touch.last_x, s_touch.last_y, true);
+        emit_event(INPUT_EVENT_RELEASE, s_input_state.last_x, s_input_state.last_y, true);
         if (dy > 35) {
-            emit_event(INPUT_EVENT_GESTURE_SWIPE_DOWN, s_touch.last_x, s_touch.last_y, true);
+            emit_event(INPUT_EVENT_GESTURE_SWIPE_DOWN, s_input_state.last_x, s_input_state.last_y, true);
         } else if (dy < -35) {
-            emit_event(INPUT_EVENT_GESTURE_SWIPE_UP, s_touch.last_x, s_touch.last_y, true);
+            emit_event(INPUT_EVENT_GESTURE_SWIPE_UP, s_input_state.last_x, s_input_state.last_y, true);
         } else if (duration <= pdMS_TO_TICKS(500)) {
-            emit_event(INPUT_EVENT_TAP, s_touch.last_x, s_touch.last_y, true);
+            emit_event(INPUT_EVENT_TAP, s_input_state.last_x, s_input_state.last_y, true);
         }
-        s_touch.touch_down = false;
+        s_input_state.touch_down = false;
     } else {
         s_input.pointer_touched = false;
+    }
+}
+
+static void s3_1_85c_process_button(void)
+{
+    bool pressed = gpio_get_level(S3_1_85C_BOOT_BUTTON_GPIO) == 0;
+    TickType_t now_tick = xTaskGetTickCount();
+
+    if (pressed && !s_input_state.boot_pressed) {
+        s_input_state.boot_pressed = true;
+        s_input_state.boot_start_tick = now_tick;
+        s_input_state.boot_long_press_emitted = false;
+    } else if (pressed && s_input_state.boot_pressed && !s_input_state.boot_long_press_emitted) {
+        TickType_t duration = now_tick - s_input_state.boot_start_tick;
+        if (duration >= pdMS_TO_TICKS(S3_1_85C_BOOT_BUTTON_HOLD_MS)) {
+            s_input_state.boot_long_press_emitted = true;
+            emit_event(INPUT_EVENT_BUTTON_LONG_PRESS, 0, 0, false);
+        }
+    } else if (!pressed && s_input_state.boot_pressed) {
+        TickType_t duration = now_tick - s_input_state.boot_start_tick;
+        if (!s_input_state.boot_long_press_emitted && duration >= pdMS_TO_TICKS(S3_1_85C_BUTTON_DEBOUNCE_MS)) {
+            emit_event(INPUT_EVENT_BUTTON_SHORT_PRESS, 0, 0, false);
+        }
+        s_input_state.boot_pressed = false;
+        s_input_state.boot_long_press_emitted = false;
     }
 }
 
@@ -153,6 +181,13 @@ static bool s3_1_85c_input_init(void)
 {
     gpio_config_t int_gpio = {
         .pin_bit_mask = 1ULL << S3_1_85C_TOUCH_INT_IO,
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    gpio_config_t boot_gpio = {
+        .pin_bit_mask = 1ULL << S3_1_85C_BOOT_BUTTON_GPIO,
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -174,7 +209,7 @@ static bool s3_1_85c_input_init(void)
     };
     uint8_t autosleep_disable = 1;
 
-    memset(&s_touch, 0, sizeof(s_touch));
+    memset(&s_input_state, 0, sizeof(s_input_state));
 
     if (s3_1_85c_support_init() != ESP_OK) {
         ESP_LOGE(TAG, "deskbot board support init failed");
@@ -184,7 +219,7 @@ static bool s3_1_85c_input_init(void)
         ESP_LOGE(TAG, "deskbot touch io init failed");
         return false;
     }
-    if (esp_lcd_touch_new_i2c_cst816s(tp_io, &tp_cfg, &s_touch.handle) != ESP_OK) {
+    if (esp_lcd_touch_new_i2c_cst816s(tp_io, &tp_cfg, &s_input_state.handle) != ESP_OK) {
         ESP_LOGE(TAG, "deskbot touch driver init failed");
         return false;
     }
@@ -193,6 +228,10 @@ static bool s3_1_85c_input_init(void)
     }
     if (gpio_config(&int_gpio) != ESP_OK) {
         ESP_LOGE(TAG, "deskbot touch int gpio failed");
+        return false;
+    }
+    if (gpio_config(&boot_gpio) != ESP_OK) {
+        ESP_LOGE(TAG, "deskbot boot button gpio failed");
         return false;
     }
 
@@ -242,6 +281,7 @@ void input_platform_process(void)
 #if CONFIG_IDF_TARGET_ESP32S3
     if (is_s3_1_85c_board(&s_input.board)) {
         s3_1_85c_process_touch();
+        s3_1_85c_process_button();
     }
 #endif
 }

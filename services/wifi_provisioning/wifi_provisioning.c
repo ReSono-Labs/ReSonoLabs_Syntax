@@ -145,8 +145,8 @@ static bool extract_decoded_field(const char *body, const char *key, char *out, 
 
 static esp_err_t handle_root(httpd_req_t *req)
 {
-    wifi_scan_result_t results[PROV_SCAN_LIMIT];
-    char options_html[PROV_BUF_LARGE];
+    wifi_scan_result_t *results;
+    char *options_html;
     const char *status = "Select a network or enter one manually.";
     char *page;
     size_t count;
@@ -154,8 +154,14 @@ static esp_err_t handle_root(httpd_req_t *req)
     size_t page_len;
 
     ESP_LOGI(TAG, "Provisioning page requested");
-    memset(results, 0, sizeof(results));
-    memset(options_html, 0, sizeof(options_html));
+    results = calloc(PROV_SCAN_LIMIT, sizeof(wifi_scan_result_t));
+    options_html = calloc(1, PROV_BUF_LARGE);
+
+    if (results == NULL || options_html == NULL) {
+        free(results);
+        free(options_html);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "mem alloc failed");
+    }
 
     count = wifi_setup_service_scan(results, PROV_SCAN_LIMIT);
     vTaskDelay(pdMS_TO_TICKS(800));
@@ -164,24 +170,26 @@ static esp_err_t handle_root(httpd_req_t *req)
     if (count == 0) {
         status = "No networks found. You can still enter the SSID manually.";
         used += snprintf(options_html + used,
-                         sizeof(options_html) - used,
+                         PROV_BUF_LARGE - used,
                          "<option value=''>No networks found</option>");
     } else {
-        for (size_t i = 0; i < count && used < sizeof(options_html); ++i) {
+        for (size_t i = 0; i < count && used < PROV_BUF_LARGE; ++i) {
             char label[1024];
 
             snprintf(label, sizeof(label), "%s (%ld dBm)", results[i].ssid, (long)results[i].rssi);
-            used += snprintf(options_html + used, sizeof(options_html) - used, "<option value='");
-            used += append_html_escaped(options_html + used, sizeof(options_html) - used, results[i].ssid);
-            used += snprintf(options_html + used, sizeof(options_html) - used, "'>");
-            used += append_html_escaped(options_html + used, sizeof(options_html) - used, label);
-            used += snprintf(options_html + used, sizeof(options_html) - used, "</option>");
+            used += snprintf(options_html + used, PROV_BUF_LARGE - used, "<option value='");
+            used += append_html_escaped(options_html + used, PROV_BUF_LARGE - used, results[i].ssid);
+            used += snprintf(options_html + used, PROV_BUF_LARGE - used, "'>");
+            used += append_html_escaped(options_html + used, PROV_BUF_LARGE - used, label);
+            used += snprintf(options_html + used, PROV_BUF_LARGE - used, "</option>");
         }
     }
 
     page_len = strlen(s_setup_page) + strlen(options_html) + strlen(status) + 1;
     page = malloc(page_len);
     if (page == NULL) {
+        free(results);
+        free(options_html);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "page alloc failed");
     }
 
@@ -189,6 +197,8 @@ static esp_err_t handle_root(httpd_req_t *req)
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, page, HTTPD_RESP_USE_STRLEN);
     free(page);
+    free(results);
+    free(options_html);
     return ESP_OK;
 }
 
