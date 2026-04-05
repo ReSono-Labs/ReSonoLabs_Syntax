@@ -281,6 +281,15 @@ static void app_process_replay_send(void)
         s_app.replay_send_not_before_ms = app_now_ms() + 300LL;
         return;
     }
+    /* The current bridge speaks replay results by injecting text directly into
+     * the live session instead of echoing a notification-replay event back to
+     * the device. Capture the tapped task locally so TURN_COMPLETE can still
+     * send results.consume and clear the notification upstream. */
+    strncpy(s_app.pending_replay_task_id,
+            s_app.replay_send_task_id,
+            sizeof(s_app.pending_replay_task_id) - 1U);
+    s_app.pending_replay_task_id[sizeof(s_app.pending_replay_task_id) - 1U] = '\0';
+    s_app.pending_replay_prompt[0] = '\0';
     s_app.replay_send_pending = false;
     s_app.replay_send_task_id[0] = '\0';
 }
